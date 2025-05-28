@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录系统Login Place</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        input, button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
+            display: none;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .nav-button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #28a745;
+        }
+        .nav-button:hover {
+            background-color: #218838;
+        }
+        .logout-button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #dc3545;
+        }
+        .logout-button:hover {
+            background-color: #c82333;
+        }
+        .gemini-button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #6f42c1;
+        }
+        .gemini-button:hover {
+            background-color: #5a32a3;
+        }
+        a {
+            color: white;
+            text-decoration: none;
+        }
+        .gemini-section {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .gemini-response {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 登录页面 -->
+        <div id="loginPage" class="page active">
+            <h2>登录</h2>
+            <input type="text" id="username" placeholder="账号">
+            <input type="password" id="password" placeholder="密码">
+            <button onclick="login()">登录</button>
+            <p id="errorMsg" class="error">账号或密码错误！</p>
+        </div>
+
+        <!-- 主页面 -->
+        <div id="mainPage" class="page">
+            <h2>欢迎，<span id="userDisplay"></span>！</h2>
+            <button class="nav-button"><a href="#questions">题目</a></button>
+            <button class="nav-button"><a href="#answers">答案</a></button>
+            <button class="gemini-button" onclick="seekGeminiHelp()">寻求Gemini的帮助</button>
+            <button class="logout-button" onclick="logout()">退出</button>
+            <div id="geminiSection" class="gemini-section" style="display: none;">
+                <input type="text" id="geminiInput" placeholder="输入您的问题">
+                <button onclick="sendToGemini()">发送</button>
+                <div id="geminiResponse" class="gemini-response"></div>
+            </div>
+        </div>
+
+        <!-- 题目页面 -->
+        <div id="questionsPage" class="page">
+            <h2>题目</h2>
+            <p>这里是题目内容（占位）。</p>
+            <button><a href="#main">返回主页</a></button>
+        </div>
+
+        <!-- 答案页面 -->
+        <div id="answersPage" class="page">
+            <h2>答案</h2>
+            <p>这里是答案内容（占位）。</p>
+            <button><a href="#main">返回主页</a></button>
+        </div>
+    </div>
+
+    <script>
+        // 页面切换函数
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        // 登录验证
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            if (username === 'admin' && password === '123456') {
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('username', username);
+                document.getElementById('userDisplay').textContent = username;
+                showPage('mainPage');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                errorMsg.style.display = 'none';
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('username');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('errorMsg').style.display = 'none';
+            showPage('loginPage');
+            window.location.hash = '';
+        }
+
+        // 显示 Gemini 交互区域
+        function seekGeminiHelp() {
+            const geminiSection = document.getElementById('geminiSection');
+            geminiSection.style.display = 'block';
+            document.getElementById('geminiInput').focus();
+        }
+
+        // 发送问题到后端
+        function sendToGemini() {
+            const input = document.getElementById('geminiInput').value;
+            const responseDiv = document.getElementById('geminiResponse');
+
+            if (!input) {
+                responseDiv.textContent = '请输入问题！';
+                return;
+            }
+
+            responseDiv.textContent = '正在查询 Gemini...';
+
+            fetch('YOUR_BACKEND_URL/gemini', {  // 部署后替换为 Render URL，如 https://your-app.onrender.com
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ input: input }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        responseDiv.textContent = `错误: ${data.error}`;
+                    } else {
+                        responseDiv.textContent = data.response;
+                    }
+                })
+                .catch(error => {
+                    responseDiv.textContent = `请求失败: ${error.message}`;
+                });
+
+            document.getElementById('geminiInput').value = '';
+        }
+
+        // 页面加载时检查登录状态
+        window.onload = function() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const username = localStorage.getItem('username');
+            if (isLoggedIn === 'true') {
+                document.getElementById('userDisplay').textContent = username;
+                showPage('mainPage');
+            } else {
+                showPage('loginPage');
+            }
+        };
+
+        // 监听 hash 变化以切换页面
+        window.addEventListener('hashchange', function() {
+            const hash = window.location.hash.slice(1);
+            if (!localStorage.getItem('isLoggedIn')) {
+                showPage('loginPage');
+                window.location.hash = '';
+                return;
+            }
+            switch (hash) {
+                case 'questions':
+                    showPage('questionsPage');
+                    break;
+                case 'answers':
+                    showPage('answersPage');
+                    break;
+                case 'main':
+                default:
+                    showPage('mainPage');
+                    break;
+            }
+        });
+
+        // 初始化 hash
+        if (window.location.hash) {
+            window.dispatchEvent(new HashChangeEvent('hashchange'));
+        }
+    </script>
+</body>
+</html>
