@@ -3,58 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录系统Login Place</title>
+    <title>Search</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
-            margin: 0;
+            width: 100vw;
             background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 13.5px;
         }
         .container {
             background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            border-radius: 9px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
             text-align: center;
-            max-width: 400px;
-            width: 100%;
+            max-width: 900px;
+            width: 90%;
+            margin: auto;
         }
         input, button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
+            padding: 11px;
+            margin: 11px 0;
             border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
+            border-radius: 4.5px;
+        }
+        input {
+            width: 100%;
         }
         button {
             background-color: #007BFF;
             color: white;
             border: none;
             cursor: pointer;
+            width: 100%;
         }
         button:hover {
             background-color: #0056b3;
         }
         .error {
             color: red;
+            font-size: 12px;
             display: none;
         }
         .page {
             display: none;
+            height: 100vh;
+            width: 100%;
         }
         .page.active {
-            display: block;
+            display: flex;
+            flex-direction: column;
         }
         .nav-button {
             display: inline-block;
-            margin: 10px;
-            padding: 10px 20px;
+            margin: 11px;
+            padding: 11px 22px;
             background-color: #28a745;
         }
         .nav-button:hover {
@@ -62,8 +74,8 @@
         }
         .logout-button {
             display: inline-block;
-            margin: 10px;
-            padding: 10px 20px;
+            margin: 11px;
+            padding: 11px 22px;
             background-color: #dc3545;
         }
         .logout-button:hover {
@@ -71,8 +83,8 @@
         }
         .gemini-button {
             display: inline-block;
-            margin: 10px;
-            padding: 10px 20px;
+            margin: 11px;
+            padding: 11px 22px;
             background-color: #6f42c1;
         }
         .gemini-button:hover {
@@ -83,15 +95,127 @@
             text-decoration: none;
         }
         .gemini-section {
-            margin-top: 20px;
+            margin-top: 22px;
             text-align: left;
         }
         .gemini-response {
-            margin-top: 10px;
-            padding: 10px;
+            margin-top: 11px;
+            padding: 11px;
             background-color: #f8f9fa;
-            border-radius: 4px;
-            min-height: 50px;
+            border-radius: 4.5px;
+            min-height: 60px;
+        }
+        #questionsPage {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+            padding: 0;
+        }
+        .split-container {
+            display: flex;
+            flex: 1;
+            max-width: 1920px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .left-panel, .right-panel {
+            flex: 1;
+            padding: 22px;
+            height: 100%;
+        }
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+            border-right: 1.5px solid #ccc;
+        }
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 11px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4.5px;
+            margin-bottom: 11px;
+        }
+        .chat-message {
+            margin: 7px 0;
+            padding: 9px;
+            border-radius: 4.5px;
+        }
+        .chat-message.user {
+            background-color: #e0f7fa;
+            text-align: right;
+        }
+        .chat-message.gemini {
+            background-color: #f1f8e9;
+            text-align: left;
+        }
+        .chat-input {
+            display: flex;
+            align-items: center;
+        }
+        .chat-input input {
+            flex: 1;
+            margin: 0 7px 0 0;
+        }
+        .chat-input button {
+            width: auto;
+            padding: 11px 22px;
+        }
+        .right-panel {
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        .pdf-controls {
+            display: flex;
+            align-items: center;
+            margin-bottom: 11px;
+        }
+        .pdf-selector {
+            flex: 1;
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 4.5px;
+            margin-right: 7px;
+        }
+        .zoom-button {
+            padding: 7px 15px;
+            margin: 0 3px;
+        }
+        .pdf-viewer {
+            flex: 1;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4.5px;
+            overflow: hidden;
+            position: relative;
+        }
+        .pdf-viewer iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.3s;
+        }
+        .return-button {
+            display: block;
+            margin: 22px auto;
+            padding: 11px 22px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 4.5px;
+            cursor: pointer;
+            width: 150px;
+        }
+        .return-button:hover {
+            background-color: #0056b3;
+        }
+        h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -100,7 +224,7 @@
         <!-- 登录页面 -->
         <div id="loginPage" class="page active">
             <h2>登录</h2>
-            <input type="text" id="username" placeholder="账号">
+            <input type="text" id="username" placeholder="用户名">
             <input type="password" id="password" placeholder="密码">
             <button onclick="login()">登录</button>
             <p id="errorMsg" class="error">账号或密码错误！</p>
@@ -108,11 +232,11 @@
 
         <!-- 主页面 -->
         <div id="mainPage" class="page">
-            <h2>欢迎，<span id="userDisplay"></span>！</h2>
+            <h2>Welcome，<span id="userDisplay"></span>！</h2>
             <button class="nav-button"><a href="#questions">题目</a></button>
             <button class="nav-button"><a href="#answers">答案</a></button>
-            <button class="gemini-button" onclick="seekGeminiHelp()">寻求Gemini的帮助</button>
-            <button class="logout-button" onclick="logout()">退出</button>
+            <button class="nav-button gemini-button" onclick="seekGemini()">查看Gemini的帮助</button>
+            <button class="nav-button logout-button" onclick="logout()">退出</button>
             <div id="geminiSection" class="gemini-section" style="display: none;">
                 <input type="text" id="geminiInput" placeholder="输入您的问题">
                 <button onclick="sendToGemini()">发送</button>
@@ -122,26 +246,50 @@
 
         <!-- 题目页面 -->
         <div id="questionsPage" class="page">
-            <h2>题目</h2>
-            <p>这里是题目内容（占位）。</p>
-            <button><a href="#main">返回主页</a></button>
+            <div class="split-container">
+                <div class="left-panel">
+                    <h2>Gemini 对话</h2>
+                    <div class="chat-history" id="chatHistory"></div>
+                    <div class="chat-input">
+                        <input type="text" id="chatInput" placeholder="向 Gemini 提问，按回车发送" onkeypress="handleKeyPress(event)">
+                        <button onclick="sendChatMessage()">发送</button>
+                    </div>
+                </div>
+                <div class="right-panel">
+                    <h2>题目</h2>
+                    <div class="pdf-controls">
+                        <select id="pdfSelector" class="pdf-selector" onchange="loadPDF(this.value)">
+                            <option value="">选择题目</option>
+                        </select>
+                        <button class="zoom-button" onclick="zoomPDF(1.2)">放大</button>
+                        <button class="zoom-button" onclick="zoomPDF(0.8)">缩小</button>
+                    </div>
+                    <div class="pdf-viewer" id="pdfViewer">
+                        <p>请选择题目加载 PDF...</p>
+                    </div>
+                </div>
+            </div>
+            <button class="return-button" onclick="showPage('mainPage');window.location.hash='main';">返回主页</button>
         </div>
 
         <!-- 答案页面 -->
         <div id="answersPage" class="page">
             <h2>答案</h2>
             <p>这里是答案内容（占位）。</p>
-            <button><a href="#main">返回主页</a></button>
+            <button class="return-button"><a href="#main">返回主页</a></button>
         </div>
     </div>
 
     <script>
-        // 页面切换函数
+        let pdfScale = 1.0; // PDF 缩放比例
+
+        // 页面切换
         function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(page => {
-                page.classList.remove('active');
-            });
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
+            if (pageId === 'questionsPage') {
+                loadPDFList();
+            }
         }
 
         // 登录验证
@@ -149,7 +297,6 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const errorMsg = document.getElementById('errorMsg');
-
             if (username === 'admin' && password === '123456') {
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('username', username);
@@ -175,47 +322,128 @@
         }
 
         // 显示 Gemini 交互区域
-        function seekGeminiHelp() {
-            const geminiSection = document.getElementById('geminiSection');
-            geminiSection.style.display = 'block';
+        function seekGemini() {
+            document.getElementById('geminiSection').style.display = 'block';
             document.getElementById('geminiInput').focus();
         }
 
-        // 发送问题到后端
-        function sendToGemini() {
+        // 发送问题到后端（主页面）
+        async function sendToGemini() {
             const input = document.getElementById('geminiInput').value;
             const responseDiv = document.getElementById('geminiResponse');
-
             if (!input) {
                 responseDiv.textContent = '请输入问题！';
                 return;
             }
-
             responseDiv.textContent = '正在查询 Gemini...';
-
-            fetch('https://gemini-api-68sb.onrender.com', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ input: input }),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        responseDiv.textContent = `错误: ${data.error}`;
-                    } else {
-                        responseDiv.textContent = data.response;
-                    }
-                })
-                .catch(error => {
-                    responseDiv.textContent = `请求失败: ${error.message}`;
+            try {
+                const response = await fetch('http://localhost:5000/gemini', {
+                    // 部署时替换为：https://gemini-api.onrender.com/gemini
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input: input }),
                 });
-
+                const data = await response.json();
+                responseDiv.textContent = data.error ? `错误: ${data.error}` : data.response;
+            } catch (error) {
+                responseDiv.textContent = `请求失败: ${error.message}`;
+            }
             document.getElementById('geminiInput').value = '';
         }
 
-        // 页面加载时检查登录状态
+        // 题目页面：回车发送
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') sendChatMessage();
+        }
+
+        // 题目页面：发送消息
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput').value;
+            const chatHistory = document.getElementById('chatHistory');
+            if (!input) return;
+            const userMessage = document.createElement('div');
+            userMessage.className = 'chat-message user';
+            userMessage.textContent = input;
+            chatHistory.appendChild(userMessage);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            try {
+                const response = await fetch('http://localhost:5000/gemini', {
+                    // 部署时替换为：https://gemini-api.onrender.com/gemini
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input: input }),
+                });
+                const data = await response.json();
+                const geminiMessage = document.createElement('div');
+                geminiMessage.className = 'chat-message gemini';
+                geminiMessage.textContent = data.error ? `错误: ${data.error}` : data.response;
+                chatHistory.appendChild(geminiMessage);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            } catch (error) {
+                const geminiMessage = document.createElement('div');
+                geminiMessage.className = 'chat-message gemini';
+                geminiMessage.textContent = `请求失败: ${error.message}`;
+                chatHistory.appendChild(geminiMessage);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
+            document.getElementById('chatInput').value = '';
+        }
+
+        // 加载 PDF 列表
+        async function loadPDFList() {
+            const pdfSelector = document.getElementById('pdfSelector');
+            pdfSelector.innerHTML = '<option value="">选择题目...</option>';
+            try {
+                const response = await fetch('http://localhost:5000/api/pdfs/list');
+                // 部署时替换为：https://gemini-api.onrender.com/api/pdfs/list
+                const data = await response.json();
+                if (data.error) {
+                    pdfSelector.innerHTML += '<option value="">加载失败</option>';
+                    return;
+                }
+                data.pdfs.forEach(pdf => {
+                    const option = document.createElement('option');
+                    option.value = pdf.id;
+                    option.textContent = pdf.title;
+                    pdfSelector.appendChild(option);
+                });
+                if (data.pdfs.length > 0) {
+                    loadPDF(data.pdfs[0].id);
+                }
+            } catch (error) {
+                pdfSelector.innerHTML += '<option value="">加载错误</option>';
+            }
+        }
+
+        // 加载 PDF
+        function loadPDF(pdfId) {
+            if (!pdfId) return;
+            const pdfViewer = document.getElementById('pdfViewer');
+            pdfViewer.innerHTML = '<p>加载 PDF 中...</p>';
+            const pdfUrl = `http://localhost:5000/api/pdf/${pdfId}`;
+            // 部署时替换为：https://gemini-api.onrender.com/api/pdf/${pdfId}
+            pdfViewer.innerHTML = `<iframe id="pdfIframe" src="${pdfUrl}" style="width:100%;height:100%;border:none;"></iframe>`;
+            pdfScale = 1.0;
+            updatePDFScale();
+        }
+
+        // PDF 缩放
+        function zoomPDF(factor) {
+            pdfScale *= factor;
+            pdfScale = Math.max(0.5, Math.min(pdfScale, 3.0));
+            updatePDFScale();
+        }
+
+        // 更新 PDF 缩放
+        function updatePDFScale() {
+            const iframe = document.getElementById('pdfIframe');
+            if (iframe) {
+                iframe.style.transform = `scale(${pdfScale})`;
+                iframe.style.transformOrigin = 'top left';
+            }
+        }
+
+        // 初始化
         window.onload = function() {
             const isLoggedIn = localStorage.getItem('isLoggedIn');
             const username = localStorage.getItem('username');
@@ -227,7 +455,6 @@
             }
         };
 
-        // 监听 hash 变化以切换页面
         window.addEventListener('hashchange', function() {
             const hash = window.location.hash.slice(1);
             if (!localStorage.getItem('isLoggedIn')) {
@@ -249,7 +476,6 @@
             }
         });
 
-        // 初始化 hash
         if (window.location.hash) {
             window.dispatchEvent(new HashChangeEvent('hashchange'));
         }
