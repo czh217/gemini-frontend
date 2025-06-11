@@ -337,7 +337,7 @@
             }
             responseDiv.textContent = '正在查询 Gemini...';
             try {
-                const response = await fetch('https://gemini-api-68sb.onrender.com', {
+                const response = await fetch('https://gemini-api.onrender.com', {
                     // 部署时替换为：https://gemini-api.onrender.com/gemini
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -367,7 +367,7 @@
             chatHistory.appendChild(userMessage);
             chatHistory.scrollTop = chatHistory.scrollHeight;
             try {
-                const response = await fetch('https://gemini-api-68sb.onrender.com', {
+                const response = await fetch('https://gemini-api.onrender.com', {
                     // 部署时替换为：https://gemini-api.onrender.com/gemini
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
