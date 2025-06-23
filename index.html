@@ -281,204 +281,199 @@
     </div>
 
     <script>
-        let pdfScale = 1.0; // PDF 缩放比例
+    let pdfScale = 1.0;
+    let pdfMap = {};
+    let currentPdfId = null;
 
-        // 页面切换
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            if (pageId === 'questionsPage') {
-                loadPDFList();
-            }
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        if (pageId === 'questionsPage') {
+            loadPDFList();
         }
+    }
 
-        // 登录验证
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const errorMsg = document.getElementById('errorMsg');
-            if (username === 'admin' && password === '123456') {
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('username', username);
-                document.getElementById('userDisplay').textContent = username;
-                showPage('mainPage');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-                errorMsg.style.display = 'none';
-            } else {
-                errorMsg.style.display = 'block';
-            }
-        }
-
-        // 退出登录
-        function logout() {
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('username');
+    function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const errorMsg = document.getElementById('errorMsg');
+        if (username === 'admin' && password === '123456') {
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('username', username);
+            document.getElementById('userDisplay').textContent = username;
+            showPage('mainPage');
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
-            document.getElementById('errorMsg').style.display = 'none';
+            errorMsg.style.display = 'none';
+        } else {
+            errorMsg.style.display = 'block';
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('username');
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('errorMsg').style.display = 'none';
+        showPage('loginPage');
+        window.location.hash = '';
+    }
+
+    function seekGemini() {
+        document.getElementById('geminiSection').style.display = 'block';
+        document.getElementById('geminiInput').focus();
+    }
+
+    async function sendToGemini() {
+        const input = document.getElementById('geminiInput').value;
+        const responseDiv = document.getElementById('geminiResponse');
+        if (!input) {
+            responseDiv.textContent = '请输入问题！';
+            return;
+        }
+        responseDiv.textContent = '正在查询 Gemini...';
+        try {
+            const response = await fetch('https://gemini-api-68sb.onrender.com/gemini', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ input: input }),
+            });
+            const data = await response.json();
+            responseDiv.textContent = data.error ? `错误: ${data.error}` : data.response;
+        } catch (error) {
+            responseDiv.textContent = `请求失败: ${error.message}`;
+        }
+        document.getElementById('geminiInput').value = '';
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') sendChatMessage();
+    }
+
+    async function sendChatMessage() {
+        const input = document.getElementById('chatInput').value;
+        const chatHistory = document.getElementById('chatHistory');
+        if (!input) return;
+
+        const userMessage = document.createElement('div');
+        userMessage.className = 'chat-message user';
+        userMessage.textContent = input;
+        chatHistory.appendChild(userMessage);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+
+        try {
+            const response = await fetch('https://gemini-api-68sb.onrender.com/gemini', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ input: input })
+            });
+            const data = await response.json();
+            const geminiMessage = document.createElement('div');
+            geminiMessage.className = 'chat-message gemini';
+            geminiMessage.textContent = data.error ? `错误: ${data.error}` : data.response;
+            chatHistory.appendChild(geminiMessage);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        } catch (error) {
+            const geminiMessage = document.createElement('div');
+            geminiMessage.className = 'chat-message gemini';
+            geminiMessage.textContent = `请求失败: ${error.message}`;
+            chatHistory.appendChild(geminiMessage);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        document.getElementById('chatInput').value = '';
+    }
+
+    async function loadPDFList() {
+        const pdfSelector = document.getElementById('pdfSelector');
+        pdfSelector.innerHTML = '<option value="">选择题目...</option>';
+        try {
+            const response = await fetch('https://gemini-api-68sb.onrender.com/api/pdfs/list');
+            const data = await response.json();
+            if (data.error) {
+                pdfSelector.innerHTML += '<option value="">加载失败</option>';
+                return;
+            }
+            data.pdfs.forEach(pdf => {
+                const option = document.createElement('option');
+                option.value = pdf.id;
+                option.textContent = pdf.title;
+                pdfMap[pdf.id] = pdf.problem_link;
+                pdfSelector.appendChild(option);
+            });
+            if (data.pdfs.length > 0) {
+                loadPDF(data.pdfs[0].id);
+            }
+        } catch (error) {
+            pdfSelector.innerHTML += '<option value="">加载错误</option>';
+        }
+    }
+
+    function loadPDF(pdfId) {
+        currentPdfId = pdfId;
+        const pdfViewer = document.getElementById('pdfViewer');
+        pdfViewer.innerHTML = '<p>加载 PDF 中...</p>';
+        const pdfUrl = pdfMap[pdfId];
+        if (!pdfUrl) {
+            pdfViewer.innerHTML = '<p>找不到该 PDF 的链接</p>';
+            return;
+        }
+        pdfViewer.innerHTML = `<iframe id="pdfIframe" src="${pdfUrl}" style="width:100%;height:100%;border:none;"></iframe>`;
+        pdfScale = 1.0;
+        updatePDFScale();
+    }
+
+    function zoomPDF(factor) {
+        pdfScale *= factor;
+        pdfScale = Math.max(0.5, Math.min(pdfScale, 3.0));
+        updatePDFScale();
+    }
+
+    function updatePDFScale() {
+        const iframe = document.getElementById('pdfIframe');
+        if (iframe) {
+            iframe.style.transform = `scale(${pdfScale})`;
+            iframe.style.transformOrigin = 'top left';
+        }
+    }
+
+    window.onload = function () {
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        const username = localStorage.getItem('username');
+        if (isLoggedIn === 'true') {
+            document.getElementById('userDisplay').textContent = username;
+            showPage('mainPage');
+        } else {
+            showPage('loginPage');
+        }
+    };
+
+    window.addEventListener('hashchange', function () {
+        const hash = window.location.hash.slice(1);
+        if (!localStorage.getItem('isLoggedIn')) {
             showPage('loginPage');
             window.location.hash = '';
+            return;
         }
-
-        // 显示 Gemini 交互区域
-        function seekGemini() {
-            document.getElementById('geminiSection').style.display = 'block';
-            document.getElementById('geminiInput').focus();
-        }
-
-        // 发送问题到后端（主页面）
-        async function sendToGemini() {
-            const input = document.getElementById('geminiInput').value;
-            const responseDiv = document.getElementById('geminiResponse');
-            if (!input) {
-                responseDiv.textContent = '请输入问题！';
-                return;
-            }
-            responseDiv.textContent = '正在查询 Gemini...';
-            try {
-                const response = await fetch('https://gemini-api-68sb.onrender.com/gemini', {
-                    // 部署时替换为：https://gemini-api.onrender.com/gemini
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ input: input }),
-                });
-                const data = await response.json();
-                responseDiv.textContent = data.error ? `错误: ${data.error}` : data.response;
-            } catch (error) {
-                responseDiv.textContent = `请求失败: ${error.message}`;
-            }
-            document.getElementById('geminiInput').value = '';
-        }
-
-        // 题目页面：回车发送
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') sendChatMessage();
-        }
-
-        // 题目页面：发送消息
-        async function sendChatMessage() {
-            const input = document.getElementById('chatInput').value;
-            const chatHistory = document.getElementById('chatHistory');
-            if (!input) return;
-            const userMessage = document.createElement('div');
-            userMessage.className = 'chat-message user';
-            userMessage.textContent = input;
-            chatHistory.appendChild(userMessage);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-            try {
-                const response = await fetch('https://gemini-api-68sb.onrender.com/gemini', {
-                    // 部署时替换为：https://gemini-api.onrender.com/gemini
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ input: input }),
-                });
-                const data = await response.json();
-                const geminiMessage = document.createElement('div');
-                geminiMessage.className = 'chat-message gemini';
-                geminiMessage.textContent = data.error ? `错误: ${data.error}` : data.response;
-                chatHistory.appendChild(geminiMessage);
-                chatHistory.scrollTop = chatHistory.scrollHeight;
-            } catch (error) {
-                const geminiMessage = document.createElement('div');
-                geminiMessage.className = 'chat-message gemini';
-                geminiMessage.textContent = `请求失败: ${error.message}`;
-                chatHistory.appendChild(geminiMessage);
-                chatHistory.scrollTop = chatHistory.scrollHeight;
-            }
-            document.getElementById('chatInput').value = '';
-        }
-
-        // 加载 PDF 列表
-        async function loadPDFList() {
-            const pdfSelector = document.getElementById('pdfSelector');
-            pdfSelector.innerHTML = '<option value="">选择题目...</option>';
-            try {
-                const response = await fetch('http://localhost:5000/api/pdfs/list');
-                // 部署时替换为：https://gemini-api.onrender.com/api/pdfs/list
-                const data = await response.json();
-                if (data.error) {
-                    pdfSelector.innerHTML += '<option value="">加载失败</option>';
-                    return;
-                }
-                data.pdfs.forEach(pdf => {
-                    const option = document.createElement('option');
-                    option.value = pdf.id;
-                    option.textContent = pdf.title;
-                    pdfSelector.appendChild(option);
-                });
-                if (data.pdfs.length > 0) {
-                    loadPDF(data.pdfs[0].id);
-                }
-            } catch (error) {
-                pdfSelector.innerHTML += '<option value="">加载错误</option>';
-            }
-        }
-
-        // 加载 PDF
-        function loadPDF(pdfId) {
-            if (!pdfId) return;
-            const pdfViewer = document.getElementById('pdfViewer');
-            pdfViewer.innerHTML = '<p>加载 PDF 中...</p>';
-            const pdfUrl = `http://localhost:5000/api/pdf/${pdfId}`;
-            // 部署时替换为：https://gemini-api.onrender.com/api/pdf/${pdfId}
-            pdfViewer.innerHTML = `<iframe id="pdfIframe" src="${pdfUrl}" style="width:100%;height:100%;border:none;"></iframe>`;
-            pdfScale = 1.0;
-            updatePDFScale();
-        }
-
-        // PDF 缩放
-        function zoomPDF(factor) {
-            pdfScale *= factor;
-            pdfScale = Math.max(0.5, Math.min(pdfScale, 3.0));
-            updatePDFScale();
-        }
-
-        // 更新 PDF 缩放
-        function updatePDFScale() {
-            const iframe = document.getElementById('pdfIframe');
-            if (iframe) {
-                iframe.style.transform = `scale(${pdfScale})`;
-                iframe.style.transformOrigin = 'top left';
-            }
-        }
-
-        // 初始化
-        window.onload = function() {
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            const username = localStorage.getItem('username');
-            if (isLoggedIn === 'true') {
-                document.getElementById('userDisplay').textContent = username;
+        switch (hash) {
+            case 'questions':
+                showPage('questionsPage');
+                break;
+            case 'answers':
+                showPage('answersPage');
+                break;
+            case 'main':
+            default:
                 showPage('mainPage');
-            } else {
-                showPage('loginPage');
-            }
-        };
-
-        window.addEventListener('hashchange', function() {
-            const hash = window.location.hash.slice(1);
-            if (!localStorage.getItem('isLoggedIn')) {
-                showPage('loginPage');
-                window.location.hash = '';
-                return;
-            }
-            switch (hash) {
-                case 'questions':
-                    showPage('questionsPage');
-                    break;
-                case 'answers':
-                    showPage('answersPage');
-                    break;
-                case 'main':
-                default:
-                    showPage('mainPage');
-                    break;
-            }
-        });
-
-        if (window.location.hash) {
-            window.dispatchEvent(new HashChangeEvent('hashchange'));
+                break;
         }
-    </script>
+    });
+
+    if (window.location.hash) {
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+    }
+</script>
+
 </body>
 </html>
